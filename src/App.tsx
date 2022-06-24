@@ -24,17 +24,18 @@ function App() {
   const { data: tokenURI } = useContractRead(contractConfig, 'commonTokenURI');
   const [imgURL, setImgURL] = useState('');
 
-  const {
-    writeAsync: mint,
-    error: mintError,
-    isLoading: mintLoading,
-  } = useContractWrite(contractConfig, 'mint');
+  const { writeAsync: mint, error: mintError } = useContractWrite(
+    contractConfig,
+    'mint'
+  );
+  const [mintLoading, setMintLoading] = useState(false);
   const { data: accountData } = useAccount();
   const { isConnected } = useConnect();
   const [mintedTokenId, setMintedTokenId] = useState<number>();
 
   const onMintClick = async () => {
     try {
+      setMintLoading(true);
       const tx = await mint({
         args: [
           accountData?.address,
@@ -45,7 +46,11 @@ function App() {
       // @ts-ignore
       const mintedTokenId = await receipt.events[0].args[2].toString();
       setMintedTokenId(mintedTokenId);
-    } catch (error) {}
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setMintLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -93,6 +98,14 @@ function App() {
           {mintError.message}
         </Text>
       )}
+
+      {
+        mintLoading && (
+          <Text marginTop='2'>
+            Minting... please wait
+          </Text>
+        )
+      }
 
       {mintedTokenId && (
         <Text marginTop='2'>
