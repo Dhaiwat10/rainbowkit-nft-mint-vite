@@ -1,4 +1,12 @@
-import { Button, Container, Text, Image, Box, Link } from '@chakra-ui/react';
+import {
+  Button,
+  Container,
+  Text,
+  Image,
+  Box,
+  Link,
+  Skeleton,
+} from '@chakra-ui/react';
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
@@ -43,6 +51,7 @@ function App() {
         ],
       });
       const receipt = await tx.wait();
+      console.log('TX receipt', receipt);
       // @ts-ignore
       const mintedTokenId = await receipt.events[0].args[2].toString();
       setMintedTokenId(mintedTokenId);
@@ -68,44 +77,48 @@ function App() {
 
       <Text marginTop='4'>This is the NFT we will be minting!</Text>
 
-      <Box
-        as={motion.div}
-        borderColor='gray.200'
-        borderWidth='1px'
-        width='fit-content'
-        marginTop='4'
-        padding='6'
-        shadow='md'
-        rounded='lg'
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        <Image src={imgURL} width='200px' />
-      </Box>
+      {imgURL ? (
+        <Box
+          as={motion.div}
+          borderColor='gray.200'
+          borderWidth='1px'
+          width='fit-content'
+          marginTop='4'
+          padding='6'
+          shadow='md'
+          rounded='lg'
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Image src={imgURL} width='200px' />
+        </Box>
+      ) : (
+        <Skeleton marginTop='4' width='250px' height='250px' rounded='lg' />
+      )}
 
       <Button
         disabled={!isConnected || mintLoading}
         marginTop='6'
         onClick={onMintClick}
-        fontSize='2xl'
-        padding='8'
+        textColor='white'
+        bg='blue.500'
+        _hover={{
+          bg: 'blue.700',
+        }}
       >
-        {isConnected ? '🎉 Mint' : '⚠️ Connect your wallet first!'}
+        {isConnected ? '🎉 Mint' : '🎉 Mint (Connect Wallet)'}
       </Button>
 
       {mintError && (
-        <Text textColor='red' marginTop='2'>
-          {mintError.message}
-        </Text>
+        <Text marginTop='4'>⛔️ Mint unsuccessful! Error message:</Text>
       )}
 
-      {
-        mintLoading && (
-          <Text marginTop='2'>
-            Minting... please wait
-          </Text>
-        )
-      }
+      {mintError && (
+        <pre style={{ marginTop: '8px', color: 'red' }}>
+          <code>{JSON.stringify(mintError, null, ' ')}</code>
+        </pre>
+      )}
+      {mintLoading && <Text marginTop='2'>Minting... please wait</Text>}
 
       {mintedTokenId && (
         <Text marginTop='2'>
