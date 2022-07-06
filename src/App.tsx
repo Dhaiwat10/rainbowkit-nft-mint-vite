@@ -10,12 +10,7 @@ import {
 import { ConnectButton } from '@rainbow-me/rainbowkit';
 import { ethers } from 'ethers';
 import { useEffect, useState } from 'react';
-import {
-  useAccount,
-  useConnect,
-  useContractRead,
-  useContractWrite,
-} from 'wagmi';
+import { useAccount, useContractRead, useContractWrite } from 'wagmi';
 import abiFile from './abiFile.json';
 import { motion } from 'framer-motion';
 
@@ -29,26 +24,26 @@ function App() {
     addressOrName: CONTRACT_ADDRESS,
     contractInterface: abiFile.abi,
   };
-  const { data: tokenURI } = useContractRead(contractConfig, 'commonTokenURI');
+  const { data: tokenURI } = useContractRead({
+    ...contractConfig,
+    functionName: 'commonTokenURI',
+  });
   const [imgURL, setImgURL] = useState('');
 
-  const { writeAsync: mint, error: mintError } = useContractWrite(
-    contractConfig,
-    'mint'
-  );
+  const { writeAsync: mint, error: mintError } = useContractWrite({
+    ...contractConfig,
+    functionName: 'mint',
+  });
   const [mintLoading, setMintLoading] = useState(false);
-  const { data: accountData } = useAccount();
-  const { isConnected } = useConnect();
+  const { address } = useAccount();
+  const isConnected = !!address;
   const [mintedTokenId, setMintedTokenId] = useState<number>();
 
   const onMintClick = async () => {
     try {
       setMintLoading(true);
       const tx = await mint({
-        args: [
-          accountData?.address,
-          { value: ethers.utils.parseEther('0.001') },
-        ],
+        args: [address, { value: ethers.utils.parseEther('0.001') }],
       });
       const receipt = await tx.wait();
       console.log('TX receipt', receipt);
